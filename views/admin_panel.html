@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Painel ADM - SGQV2</title>
+    <link rel="icon" href="/img/b2b.png">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+
+    <!-- jQuery & Bootstrap JS (necessário para modal funcionar) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body class="bg-light">
+
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary">Painel do Administrador</h2>
+            <a href="/home" class="btn btn-secondary">Voltar para Home</a>
+        </div>
+
+        <!-- Formulário de cadastro -->
+        <div class="mb-4">
+            <h5>Cadastrar Novo Usuário</h5>
+            <form action="/admin/cadastrar" method="POST" class="form-inline">
+                <input type="text" name="nome" class="form-control mr-2 mb-2" placeholder="Nome" required>
+                <input type="email" name="email" class="form-control mr-2 mb-2" placeholder="Email" required>
+                <input type="text" name="senha" class="form-control mr-2 mb-2" placeholder="Senha" required>
+                <select name="perfil" class="form-control mr-2 mb-2" required>
+                    <option value="USER">USER</option>
+                    <option value="ADM">ADM</option>
+                </select>
+                <select name="status" class="form-control mr-2 mb-2" required>
+                    <option value="ATIVO">ATIVO</option>
+                    <option value="INATIVO">INATIVO</option>
+                </select>
+                <button type="submit" class="btn btn-success mb-2">Cadastrar</button>
+            </form>
+        </div>
+
+        <!-- Tabela de usuários -->
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                Lista de Usuários
+            </div>
+            <div class="card-body p-0">
+                <div class="mb-3">
+                    <input type="text" id="buscaUsuario" class="form-control" placeholder="Buscar por nome ou email">
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center ml-3">
+                        <label for="filtroStatus" class="mr-2 mb-0">Filtrar por status:</label>
+                        <select id="filtroStatus" class="form-control w-auto">
+                            <option value="TODOS">Todos</option>
+                            <option value="ATIVO">Ativos</option>
+                            <option value="AGUARDANDO">Aguardando</option>
+                        </select>
+                    </div>
+
+                    <!-- Botão totalmente à direita -->
+                    <button id="btnResetar" class="btn btn-secondary mr-3">Resetar
+                        Filtros</button>
+                </div>
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Perfil</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaUsuarios">
+                        <!-- Conteúdo dinâmico via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edição -->
+    <div class="modal fade" id="modalEditar" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <form id="formEditar" method="POST">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalLabel">Editar Usuário</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="id" id="editarId">
+                        <div class="form-group">
+                            <label>Nome</label>
+                            <input type="text" name="nome" id="editarNome" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" name="email" id="editarEmail" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Senha</label>
+                            <input type="text" name="senha" id="editarSenha" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Perfil</label>
+                            <select name="perfil" id="editarPerfil" class="form-control">
+                                <option value="USER" selected>USER</option>
+                                <option value="ADM">ADM</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select name="status" id="editarStatus" class="form-control">
+                                <option value="ATIVO">ATIVO</option>
+                                <option value="INATIVO">INATIVO</option>
+                                <option value="AGUARDANDO">AGUARDANDO</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Exclusão -->
+    <div class="modal fade" id="modalExcluir" tabindex="-1" role="dialog" aria-labelledby="modalExcluirLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <form id="formExcluir" method="POST">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title" id="modalExcluirLabel">Confirmar Exclusão</h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Fechar">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Tem certeza que deseja excluir o usuário <strong id="excluirNome"></strong>?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-danger">Sim, excluir</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script para carregar usuários e abrir modal -->
+    <script>
+
+
+        // 1. Função principal que renderiza a tabela
+        function renderUsuarios() {
+            fetch('/admin/usuarios') // acessa o backend /usuário da pasta admin.js
+                .then(res => res.json()) //retorna um Json
+                .then(usuarios => { // cria um array de usuários                   
+                    const tabela = document.getElementById('tabelaUsuarios'); //pega o elemento do html e adiciona na const tabela
+                    tabela.innerHTML = ''; // limpa antes de recarregar remove o tr anterior
+
+                    const filtro = document.getElementById('filtroStatus').value; //campo de filtro de status do usuário
+
+                    usuarios
+                        .filter(user => filtro === 'TODOS' || user.status === filtro) // se filtro igual a todos não filtra, se não filtra o user pelo status.
+                        .forEach(user => { //para cada usuário cria um TR na tabela
+                            const tr = document.createElement('tr');//para cada usuário cria um TR na tabela
+
+                            const statusUsuario = user.status //verifica o status do usuário
+
+                            if (statusUsuario === 'AGUARDANDO') {
+                                btnStatus = `<button class="btn btn-sm btn-success" onclick="aprovarUsuario(${user.id})">Aprovar</button>`
+                            } else if (statusUsuario === 'INATIVO') {
+                                btnStatus = `<button class="btn btn-sm btn-success" onclick="aprovarUsuario(${user.id})">Aprovar</button>`
+                            } else { btnStatus = `<button class="btn btn-sm btn-secondary" onclick="desativarUsuario(${user.id})">Desativar</button>` }
+
+                            tr.innerHTML = `
+                  <td>${user.id}</td>
+                  <td>${user.nome}</td>
+                  <td>${user.email}</td>
+                  <td>${user.perfil}</td>
+                  <td>${user.status}</td>
+                  <td>                 
+
+                    <button class="btn btn-sm btn-warning mr-1" onclick="abrirModalEditar(${user.id}, '${user.nome}', '${user.email}', '${user.perfil}', '${user.status}')">Editar</button>
+                    <button class="btn btn-sm btn-danger" onclick="abrirModalExcluir(${user.id}, '${user.nome}')">Excluir</button>
+                    ${btnStatus}
+
+                  </td>
+                `;
+                            tabela.appendChild(tr);
+                        });
+                })
+                .catch(err => console.error('Erro ao carregar usuários:', err));
+        }
+
+        // 2. Abrir modal de edição
+        function abrirModalEditar(id, nome, email, perfil, status) {
+            //document.getElementById("editarPerfil").value = "USER";
+            document.getElementById('editarId').value = id;
+            document.getElementById('editarNome').value = nome;
+            document.getElementById('editarEmail').value = email;
+            document.getElementById('editarSenha').value = ''; // vazio para segurança
+            document.getElementById("editarPerfil").value = perfil;
+            document.getElementById('editarStatus').value = status;
+            document.getElementById('formEditar').action = `/admin/editar/${id}`;
+            $('#modalEditar').modal('show');
+        }
+
+        // 3. Submissão da edição via JS
+        document.getElementById('formEditar').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const id = document.getElementById('editarId').value;
+
+            const form = new URLSearchParams(new FormData(this));
+
+            fetch(`/admin/editar/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: form
+            })
+                .then(() => {
+                    $('#modalEditar').modal('hide');
+                    renderUsuarios();
+                })
+                .catch(err => console.error('Erro ao editar:', err));
+        });
+
+        // 4. Abrir modal de exclusão
+        function abrirModalExcluir(id, nome) {
+            document.getElementById('excluirNome').innerText = nome;
+            document.getElementById('formExcluir').action = `/admin/excluir/${id}`;
+            $('#modalExcluir').modal('show');
+        }
+
+        // 5. Submissão da exclusão via JS
+        document.getElementById('formExcluir').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            fetch(this.action, {
+                method: 'POST'
+            })
+                .then(() => {
+                    $('#modalExcluir').modal('hide');
+                    renderUsuarios();
+                })
+                .catch(err => console.error('Erro ao excluir:', err));
+        });
+
+        // 6. Filtro de busca em tempo real
+        document.getElementById('buscaUsuario').addEventListener('input', function () {
+            const termo = this.value.toLowerCase();
+            const linhas = document.querySelectorAll('#tabelaUsuarios tr');
+
+            linhas.forEach(linha => {
+                const nome = linha.children[1].textContent.toLowerCase();
+                const email = linha.children[2].textContent.toLowerCase();
+                const visivel = nome.includes(termo) || email.includes(termo);
+                linha.style.display = visivel ? '' : 'none';
+            });
+        });
+
+        // resetar filtros
+        document.getElementById('btnResetar').addEventListener('click', function () {
+
+            document.getElementById('filtroStatus').value = 'TODOS'
+            document.getElementById('buscaUsuario').value = ''
+            renderUsuarios() //recarrega a lista
+
+        })
+
+        // 7. Inicialização
+        renderUsuarios();
+
+
+        //função para ativar o usuário no banco
+        function aprovarUsuario(id) {
+            fetch(`/admin/aprovar/${id}`, {
+                method: 'POST'
+            })
+                .then(res => {
+                    if (res.ok) {
+                        alert("Usuário aprovado com sucesso!");
+                        renderUsuarios(); // recarrega a tabela
+                    } else {
+                        alert("Erro ao aprovar.");
+                    }
+                });
+        }
+
+        function desativarUsuario(id) {
+            fetch(`/admin/desativar/${id}`, {
+                method: 'POST'
+            })
+                .then(res => {
+                    if (res.ok) {
+                        renderUsuarios(); // recarrega a tabela
+                        alert("Usuário desativado com sucesso!");
+
+                    } else {
+                        alert("Erro ao desativar.");
+                    }
+                });
+        }
+
+        document.getElementById('filtroStatus').addEventListener('change', () => {
+            renderUsuarios();
+        });
+    </script>
+
+</body>
+
+</html>

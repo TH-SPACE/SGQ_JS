@@ -1,0 +1,27 @@
+login-system/
+│
+├── public/                  # Arquivos estáticos (css, js, imagens)
+│   └── css/
+│   └── js/
+│
+├── views/                   # Arquivos HTML (renderizados via EJS ou servidos direto)
+│   └── login.html
+│   └── index.html           # Menu do sistema
+│   └── admin_register.html  # Tela de cadastro de usuários (apenas ADM)
+│
+├── routes/                  # Arquivos de rotas
+│   └── auth.js              # Login, logout, cadastro
+│   └── protected.js         # Rotas protegidas (menu, páginas internas)
+│
+├── controllers/             # Lógica de negócio
+│   └── authController.js
+│
+├── db/                      # Conexão com o banco MariaDB
+│   └── db.js
+│
+├── middleware/              # Verificação de autenticação
+│   └── authMiddleware.js
+│
+├── .env                     # Variáveis de ambiente (senha do BD, por ex.)
+├── app.js                   # Arquivo principal da aplicação
+├── package.json

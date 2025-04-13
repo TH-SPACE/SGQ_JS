@@ -1,0 +1,11 @@
+Esses pacotes fazem:
+
+express: cria o servidor web
+
+express-session: gerencia sessões de login
+
+mysql2: conecta com MariaDB
+
+dotenv: lê variáveis do .env
+
+body-parser: trata formulários (POST)
